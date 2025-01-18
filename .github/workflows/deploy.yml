@@ -11,13 +11,9 @@ on:
       - develop
 
 env:
-  AWS_REGION: ap-northeast-1
+  AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_REPOSITORY_FRONTEND: aqua-estimaits/frontend
   ECR_REPOSITORY_BACKEND: aqua-estimaits/backend
-
-permissions:
-  id-token: write
-  contents: read
 
 jobs:
   test:
@@ -62,11 +58,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Configure AWS credentials
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -103,11 +100,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Configure AWS credentials
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -120,7 +118,7 @@ jobs:
           terraform init \
             -backend-config="bucket=aqua-estimaits-tfstate" \
             -backend-config="key=dev/terraform.tfstate" \
-            -backend-config="region=${{ env.AWS_REGION }}"
+            -backend-config="region=${{ secrets.AWS_REGION }}"
 
       - name: Terraform Plan
         working-directory: ./terraform
@@ -144,11 +142,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Configure AWS credentials
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -161,7 +160,7 @@ jobs:
           terraform init \
             -backend-config="bucket=aqua-estimaits-tfstate" \
             -backend-config="key=prod/terraform.tfstate" \
-            -backend-config="region=${{ env.AWS_REGION }}"
+            -backend-config="region=${{ secrets.AWS_REGION }}"
 
       - name: Terraform Plan
         working-directory: ./terraform
