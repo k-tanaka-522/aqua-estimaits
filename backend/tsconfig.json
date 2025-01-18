@@ -1,0 +1,71 @@
+{
+  "compilerOptions": {
+    // プロジェクトの設定
+    "target": "ES2022",
+    "module": "CommonJS",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+
+    // モジュール解決の設定
+    "moduleResolution": "node",
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["*"]
+    },
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+
+    // 厳格な型チェック
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+
+    // 追加の型チェック
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+
+    // ソースマップとデバッグ
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    "inlineSources": true,
+
+    // 実験的機能
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
+    // その他の設定
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": true,
+    "preserveConstEnums": true,
+    "removeComments": false
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "coverage"
+  ],
+  "ts-node": {
+    "files": true,
+    "transpileOnly": true,
+    "require": ["tsconfig-paths/register"]
+  }
+}

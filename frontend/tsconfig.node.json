@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "jsx": "preserve",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "target": "es2020",
+    "lib": ["es2020"],
+    "types": ["node"],
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "vite.config.ts",
+    "vitest.config.ts",
+    "cypress.config.ts",
+    "playwright.config.ts",
+    "package.json"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build"
+  ]
+}
