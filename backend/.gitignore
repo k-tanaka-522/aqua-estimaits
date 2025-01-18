@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+yarn.lock
+package-lock.json
+
+# Build
+dist/
+build/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Debug
+.node-version
+.npm/
+
+# Docker
+.docker/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!environments/*.tfvars
+
+# Misc
+.DS_Store
+Thumbs.db

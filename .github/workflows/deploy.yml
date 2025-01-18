@@ -1,0 +1,200 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+env:
+  AWS_REGION: ap-northeast-1
+  ECR_REPOSITORY_FRONTEND: aqua-estimaits/frontend
+  ECR_REPOSITORY_BACKEND: aqua-estimaits/backend
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'yarn'
+
+      # バックエンドのテスト
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: yarn install
+
+      - name: Run backend tests
+        working-directory: ./backend
+        run: yarn test
+
+      # フロントエンドのテスト
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: yarn install
+
+      - name: Run frontend tests
+        working-directory: ./frontend
+        run: yarn test
+
+  build-and-push:
+    name: Build and Push
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      # フロントエンドのビルドとプッシュ
+      - name: Build and push frontend image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        working-directory: ./frontend
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_FRONTEND:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY_FRONTEND:$IMAGE_TAG
+
+      # バックエンドのビルドとプッシュ
+      - name: Build and push backend image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        working-directory: ./backend
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_BACKEND:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY_BACKEND:$IMAGE_TAG
+
+  deploy-dev:
+    name: Deploy to Development
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    environment: development
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.0.0
+
+      - name: Terraform Init
+        working-directory: ./terraform
+        run: |
+          terraform init \
+            -backend-config="bucket=aqua-estimaits-tfstate" \
+            -backend-config="key=dev/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_REGION }}"
+
+      - name: Terraform Plan
+        working-directory: ./terraform
+        run: |
+          terraform workspace select dev || terraform workspace new dev
+          terraform plan -var-file="environments/dev.tfvars"
+
+      - name: Terraform Apply
+        working-directory: ./terraform
+        run: |
+          terraform apply -var-file="environments/dev.tfvars" -auto-approve
+
+  deploy-prod:
+    name: Deploy to Production
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.0.0
+
+      - name: Terraform Init
+        working-directory: ./terraform
+        run: |
+          terraform init \
+            -backend-config="bucket=aqua-estimaits-tfstate" \
+            -backend-config="key=prod/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_REGION }}"
+
+      - name: Terraform Plan
+        working-directory: ./terraform
+        run: |
+          terraform workspace select prod || terraform workspace new prod
+          terraform plan -var-file="environments/prod.tfvars"
+
+      - name: Terraform Apply
+        working-directory: ./terraform
+        run: |
+          terraform apply -var-file="environments/prod.tfvars" -auto-approve
+
+  notify:
+    name: Notify Deployment Status
+    needs: [deploy-dev, deploy-prod]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Notify success
+        if: success()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
+          slack-message: "✅ Deployment succeeded!\nEnvironment: ${{ github.ref == 'refs/heads/main' && 'Production' || 'Development' }}\nCommit: ${{ github.sha }}"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: Notify failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
+          slack-message: "❌ Deployment failed!\nEnvironment: ${{ github.ref == 'refs/heads/main' && 'Production' || 'Development' }}\nCommit: ${{ github.sha }}"
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2024-01-18T01:34:00.000Z" agent="Mozilla/5.0" version="21.6.6" etag="your-etag">
+  <diagram id="data-flow" name="データフロー図">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- ユーザー -->
+        <mxCell id="2" value="ユーザー" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="280" width="30" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- フロントエンド -->
+        <mxCell id="3" value="フロントエンド&#xa;(React)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="160" y="280" width="120" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- API Gateway -->
+        <mxCell id="4" value="API Gateway&#xa;(ALB)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="360" y="280" width="120" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- バックエンド -->
+        <mxCell id="5" value="バックエンド&#xa;(Node.js)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="560" y="280" width="120" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- データベース -->
+        <mxCell id="6" value="DocumentDB" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="760" y="270" width="60" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Parameter Store -->
+        <mxCell id="7" value="Parameter&#xa;Store" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="560" y="400" width="120" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- CloudWatch -->
+        <mxCell id="8" value="CloudWatch&#xa;Logs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="560" y="160" width="120" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- データフロー -->
+        <mxCell id="9" value="" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="2" target="3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="10" value="HTTP/HTTPS" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="3" target="4">
+          <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="11" value="HTTP/HTTPS" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="4" target="5">
+          <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="12" value="MongoDB Protocol" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="5" target="6">
+          <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="13" value="設定取得" style="endArrow=classic;html=1;rounded=0;dashed=1;" edge="1" parent="1" source="5" target="7">
+          <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="14" value="ログ出力" style="endArrow=classic;html=1;rounded=0;dashed=1;" edge="1" parent="1" source="5" target="8">
+          <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="deployment-flow" name="デプロイメントフロー図">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- 開発者 -->
+        <mxCell id="2" value="開発者" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="280" width="30" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- GitHub -->
+        <mxCell id="3" value="GitHub&#xa;Repository" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="160" y="280" width="120" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- GitHub Actions -->
+        <mxCell id="4" value="GitHub&#xa;Actions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="360" y="280" width="120" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- ECR -->
+        <mxCell id="5" value="Amazon&#xa;ECR" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="560" y="280" width="120" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- ECS -->
+        <mxCell id="6" value="Amazon&#xa;ECS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="760" y="280" width="120" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- デプロイフロー -->
+        <mxCell id="7" value="git push" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="2" target="3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="8" value="トリガー" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="3" target="4">
+          <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="9" value="イメージ&#xa;プッシュ" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="4" target="5">
+          <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="10" value="デプロイ" style="endArrow=classic;html=1;rounded=0;" edge="1" parent="1" source="5" target="6">
+          <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 環境分岐 -->
+        <mxCell id="11" value="開発環境" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="760" y="160" width="120" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="12" value="本番環境" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="760" y="400" width="120" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="13" value="develop" style="endArrow=classic;html=1;rounded=0;dashed=1;" edge="1" parent="1" source="6" target="11">
+          <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="14" value="main" style="endArrow=classic;html=1;rounded=0;dashed=1;" edge="1" parent="1" source="6" target="12">
+          <mxGeometry width="50" height="50" relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
