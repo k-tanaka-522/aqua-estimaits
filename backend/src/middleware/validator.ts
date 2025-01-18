@@ -1,11 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
-import { validationResult, ValidationChain } from 'express-validator';
-import { AppError } from './errorHandler';
+import { body, validationResult, ValidationChain } from 'express-validator';
 
-// Middleware to check for validation errors
-export const validate = (validations: ValidationChain[]) => {
+// バリデーションエラーをチェックするミドルウェア
+const validateRequest = (validations: ValidationChain[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    // Run all validations
+    // すべてのバリデーションを実行
     await Promise.all(validations.map(validation => validation.run(req)));
 
     const errors = validationResult(req);
@@ -13,162 +12,128 @@ export const validate = (validations: ValidationChain[]) => {
       return next();
     }
 
-    const extractedErrors = errors.array().map(err => ({
-      [err.param]: err.msg
+    // エラーメッセージを整形
+    const formattedErrors = errors.array().map(err => ({
+      field: err.type === 'field' ? err.path : 'unknown',
+      message: err.msg
     }));
 
-    throw new AppError('Validation failed', 400);
+    res.status(400).json({
+      message: 'Validation failed',
+      errors: formattedErrors
+    });
   };
 };
 
-// Common validation rules
-export const commonValidations = {
-  idParam: {
-    in: ['params'],
-    isMongoId: true,
-    errorMessage: 'Invalid ID format'
-  },
-  dateRange: {
-    startDate: {
-      in: ['query'],
-      isISO8601: true,
-      toDate: true,
-      errorMessage: 'Invalid start date format'
-    },
-    endDate: {
-      in: ['query'],
-      isISO8601: true,
-      toDate: true,
-      errorMessage: 'Invalid end date format'
-    }
-  },
-  pagination: {
-    page: {
-      in: ['query'],
-      optional: true,
-      isInt: { options: { min: 1 } },
-      toInt: true,
-      errorMessage: 'Page must be a positive integer'
-    },
-    limit: {
-      in: ['query'],
-      optional: true,
-      isInt: { options: { min: 1, max: 100 } },
-      toInt: true,
-      errorMessage: 'Limit must be between 1 and 100'
-    }
-  },
-  status: {
-    in: ['body'],
-    isString: true,
-    notEmpty: true,
-    errorMessage: 'Status is required and must be a string'
-  }
-};
+// 財務情報のバリデーションルール
+export const validateFinancial = validateRequest([
+  body('period.startDate')
+    .isISO8601()
+    .withMessage('Start date must be a valid date'),
+  body('period.endDate')
+    .isISO8601()
+    .withMessage('End date must be a valid date'),
+  body('budget.total')
+    .isFloat({ min: 0 })
+    .withMessage('Total budget must be a positive number'),
+  body('budget.categories.operations')
+    .isFloat({ min: 0 })
+    .withMessage('Operations budget must be a positive number'),
+  body('budget.categories.maintenance')
+    .isFloat({ min: 0 })
+    .withMessage('Maintenance budget must be a positive number'),
+  body('budget.categories.labor')
+    .isFloat({ min: 0 })
+    .withMessage('Labor budget must be a positive number'),
+  body('budget.categories.materials')
+    .isFloat({ min: 0 })
+    .withMessage('Materials budget must be a positive number'),
+  body('budget.categories.marketing')
+    .isFloat({ min: 0 })
+    .withMessage('Marketing budget must be a positive number'),
+  body('budget.categories.other')
+    .isFloat({ min: 0 })
+    .withMessage('Other budget must be a positive number'),
+  body('status')
+    .isIn(['planning', 'active', 'completed', 'archived'])
+    .withMessage('Invalid status')
+]);
 
-// Facility validation rules
-export const facilityValidations = {
-  create: [
-    {
-      name: {
-        in: ['body'],
-        isString: true,
-        notEmpty: true,
-        trim: true,
-        errorMessage: 'Facility name is required'
-      },
-      location: {
-        in: ['body'],
-        isString: true,
-        notEmpty: true,
-        trim: true,
-        errorMessage: 'Location is required'
-      },
-      capacity: {
-        in: ['body'],
-        isNumeric: true,
-        custom: {
-          options: (value: number) => value > 0
-        },
-        errorMessage: 'Capacity must be a positive number'
-      }
-    }
-  ]
-};
+// 施設のバリデーションルール
+export const validateFacility = validateRequest([
+  body('name')
+    .notEmpty()
+    .withMessage('Name is required')
+    .isString()
+    .withMessage('Name must be a string'),
+  body('location.address')
+    .notEmpty()
+    .withMessage('Address is required')
+    .isString()
+    .withMessage('Address must be a string'),
+  body('location.coordinates.latitude')
+    .isFloat({ min: -90, max: 90 })
+    .withMessage('Invalid latitude'),
+  body('location.coordinates.longitude')
+    .isFloat({ min: -180, max: 180 })
+    .withMessage('Invalid longitude'),
+  body('capacity.total')
+    .isFloat({ min: 0 })
+    .withMessage('Total capacity must be a positive number'),
+  body('type')
+    .isIn(['pond', 'tank', 'cage', 'other'])
+    .withMessage('Invalid facility type'),
+  body('status')
+    .isIn(['active', 'maintenance', 'inactive'])
+    .withMessage('Invalid status')
+]);
 
-// Production validation rules
-export const productionValidations = {
-  create: [
-    {
-      facilityId: commonValidations.idParam,
-      productName: {
-        in: ['body'],
-        isString: true,
-        notEmpty: true,
-        trim: true,
-        errorMessage: 'Product name is required'
-      },
-      targetQuantity: {
-        in: ['body'],
-        isNumeric: true,
-        custom: {
-          options: (value: number) => value > 0
-        },
-        errorMessage: 'Target quantity must be a positive number'
-      }
-    }
-  ]
-};
+// 生産情報のバリデーションルール
+export const validateProduction = validateRequest([
+  body('facilityId')
+    .notEmpty()
+    .withMessage('Facility ID is required')
+    .isMongoId()
+    .withMessage('Invalid facility ID'),
+  body('species')
+    .notEmpty()
+    .withMessage('Species is required')
+    .isString()
+    .withMessage('Species must be a string'),
+  body('quantity.initial')
+    .isFloat({ min: 0 })
+    .withMessage('Initial quantity must be a positive number'),
+  body('quantity.current')
+    .isFloat({ min: 0 })
+    .withMessage('Current quantity must be a positive number'),
+  body('period.startDate')
+    .isISO8601()
+    .withMessage('Start date must be a valid date'),
+  body('period.expectedEndDate')
+    .isISO8601()
+    .withMessage('Expected end date must be a valid date'),
+  body('status')
+    .isIn(['planning', 'ongoing', 'completed', 'cancelled'])
+    .withMessage('Invalid status')
+]);
 
-// Sales validation rules
-export const salesValidations = {
-  create: [
-    {
-      productId: commonValidations.idParam,
-      period: {
-        startDate: commonValidations.dateRange.startDate,
-        endDate: commonValidations.dateRange.endDate
-      },
-      targets: {
-        quantity: {
-          in: ['body'],
-          isNumeric: true,
-          custom: {
-            options: (value: number) => value > 0
-          },
-          errorMessage: 'Target quantity must be a positive number'
-        },
-        revenue: {
-          in: ['body'],
-          isNumeric: true,
-          custom: {
-            options: (value: number) => value > 0
-          },
-          errorMessage: 'Target revenue must be a positive number'
-        }
-      }
-    }
-  ]
-};
-
-// Financial validation rules
-export const financialValidations = {
-  create: [
-    {
-      period: {
-        startDate: commonValidations.dateRange.startDate,
-        endDate: commonValidations.dateRange.endDate
-      },
-      budget: {
-        total: {
-          in: ['body'],
-          isNumeric: true,
-          custom: {
-            options: (value: number) => value > 0
-          },
-          errorMessage: 'Total budget must be a positive number'
-        }
-      }
-    }
-  ]
-};
+// 販売情報のバリデーションルール
+export const validateSales = validateRequest([
+  body('productId')
+    .notEmpty()
+    .withMessage('Product ID is required')
+    .isMongoId()
+    .withMessage('Invalid product ID'),
+  body('quantity')
+    .isFloat({ min: 0 })
+    .withMessage('Quantity must be a positive number'),
+  body('unitPrice')
+    .isFloat({ min: 0 })
+    .withMessage('Unit price must be a positive number'),
+  body('date')
+    .isISO8601()
+    .withMessage('Date must be a valid date'),
+  body('status')
+    .isIn(['pending', 'completed', 'cancelled'])
+    .withMessage('Invalid status')
+]);

@@ -1,34 +1,34 @@
 import { Request, Response } from 'express';
-import Facility, { IFacility } from '../../models/Facility';
+import { Facility } from '../../models/Facility';
 
-// Get all facilities
-export const getAllFacilities = async (req: Request, res: Response) => {
+// すべての施設を取得
+export const getAllFacilities = async (_req: Request, res: Response): Promise<void> => {
   try {
     const facilities = await Facility.find();
-    res.json(facilities);
+    res.status(200).json(facilities);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching facilities', error });
   }
 };
 
-// Get facility by ID
-export const getFacilityById = async (req: Request, res: Response) => {
+// IDで施設を取得
+export const getFacilityById = async (req: Request, res: Response): Promise<void> => {
   try {
-    const facility = await Facility.findById(req.params.id);
+    const facility = await Facility.findById(req.params['id']);
     if (!facility) {
-      return res.status(404).json({ message: 'Facility not found' });
+      res.status(404).json({ message: 'Facility not found' });
+      return;
     }
-    res.json(facility);
+    res.status(200).json(facility);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching facility', error });
   }
 };
 
-// Create new facility
-export const createFacility = async (req: Request, res: Response) => {
+// 新しい施設を作成
+export const createFacility = async (req: Request, res: Response): Promise<void> => {
   try {
-    const facilityData: IFacility = req.body;
-    const facility = new Facility(facilityData);
+    const facility = new Facility(req.body);
     const savedFacility = await facility.save();
     res.status(201).json(savedFacility);
   } catch (error) {
@@ -36,31 +36,33 @@ export const createFacility = async (req: Request, res: Response) => {
   }
 };
 
-// Update facility
-export const updateFacility = async (req: Request, res: Response) => {
+// 施設を更新
+export const updateFacility = async (req: Request, res: Response): Promise<void> => {
   try {
-    const updatedFacility = await Facility.findByIdAndUpdate(
-      req.params.id,
-      req.body,
+    const facility = await Facility.findByIdAndUpdate(
+      req.params['id'],
+      { $set: req.body },
       { new: true, runValidators: true }
     );
-    if (!updatedFacility) {
-      return res.status(404).json({ message: 'Facility not found' });
+    if (!facility) {
+      res.status(404).json({ message: 'Facility not found' });
+      return;
     }
-    res.json(updatedFacility);
+    res.status(200).json(facility);
   } catch (error) {
     res.status(500).json({ message: 'Error updating facility', error });
   }
 };
 
-// Delete facility
-export const deleteFacility = async (req: Request, res: Response) => {
+// 施設を削除
+export const deleteFacility = async (req: Request, res: Response): Promise<void> => {
   try {
-    const deletedFacility = await Facility.findByIdAndDelete(req.params.id);
+    const deletedFacility = await Facility.findByIdAndDelete(req.params['id']);
     if (!deletedFacility) {
-      return res.status(404).json({ message: 'Facility not found' });
+      res.status(404).json({ message: 'Facility not found' });
+      return;
     }
-    res.json({ message: 'Facility deleted successfully' });
+    res.status(200).json({ message: 'Facility deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting facility', error });
   }

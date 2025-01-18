@@ -1,100 +1,90 @@
 import { Request, Response } from 'express';
-import Production, { IProduction } from '../../models/Production';
+import { Production } from '../../models/Production';
 
-// Get all production plans
-export const getAllProductions = async (req: Request, res: Response) => {
+// すべての生産情報を取得
+export const getAllProductions = async (_req: Request, res: Response): Promise<void> => {
   try {
     const productions = await Production.find().populate('facilityId');
-    res.json(productions);
+    res.status(200).json(productions);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching production plans', error });
+    res.status(500).json({ message: 'Error fetching productions', error });
   }
 };
 
-// Get production plan by ID
-export const getProductionById = async (req: Request, res: Response) => {
+// IDで生産情報を取得
+export const getProductionById = async (req: Request, res: Response): Promise<void> => {
   try {
-    const production = await Production.findById(req.params.id).populate('facilityId');
+    const production = await Production.findById(req.params['id']).populate('facilityId');
     if (!production) {
-      return res.status(404).json({ message: 'Production plan not found' });
+      res.status(404).json({ message: 'Production not found' });
+      return;
     }
-    res.json(production);
+    res.status(200).json(production);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching production plan', error });
+    res.status(500).json({ message: 'Error fetching production', error });
   }
 };
 
-// Create new production plan
-export const createProduction = async (req: Request, res: Response) => {
+// 新しい生産情報を作成
+export const createProduction = async (req: Request, res: Response): Promise<void> => {
   try {
-    const productionData: IProduction = req.body;
-    const production = new Production(productionData);
+    const production = new Production(req.body);
     const savedProduction = await production.save();
-    const populatedProduction = await savedProduction.populate('facilityId');
-    res.status(201).json(populatedProduction);
+    await savedProduction.populate('facilityId');
+    res.status(201).json(savedProduction);
   } catch (error) {
-    res.status(500).json({ message: 'Error creating production plan', error });
+    res.status(500).json({ message: 'Error creating production', error });
   }
 };
 
-// Update production plan
-export const updateProduction = async (req: Request, res: Response) => {
+// 生産情報を更新
+export const updateProduction = async (req: Request, res: Response): Promise<void> => {
   try {
-    const updatedProduction = await Production.findByIdAndUpdate(
-      req.params.id,
-      req.body,
+    const production = await Production.findByIdAndUpdate(
+      req.params['id'],
+      { $set: req.body },
       { new: true, runValidators: true }
     ).populate('facilityId');
-    
-    if (!updatedProduction) {
-      return res.status(404).json({ message: 'Production plan not found' });
-    }
-    res.json(updatedProduction);
-  } catch (error) {
-    res.status(500).json({ message: 'Error updating production plan', error });
-  }
-};
 
-// Delete production plan
-export const deleteProduction = async (req: Request, res: Response) => {
-  try {
-    const deletedProduction = await Production.findByIdAndDelete(req.params.id);
-    if (!deletedProduction) {
-      return res.status(404).json({ message: 'Production plan not found' });
-    }
-    res.json({ message: 'Production plan deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error deleting production plan', error });
-  }
-};
-
-// Get production plans by facility
-export const getProductionsByFacility = async (req: Request, res: Response) => {
-  try {
-    const { facilityId } = req.params;
-    const productions = await Production.find({ facilityId }).populate('facilityId');
-    res.json(productions);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching production plans for facility', error });
-  }
-};
-
-// Update production status
-export const updateProductionStatus = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { status } = req.body;
-
-    const production = await Production.findById(id);
     if (!production) {
-      return res.status(404).json({ message: 'Production plan not found' });
+      res.status(404).json({ message: 'Production not found' });
+      return;
     }
+    res.status(200).json(production);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating production', error });
+  }
+};
 
-    production.status = status;
-    const updatedProduction = await production.save();
-    const populatedProduction = await updatedProduction.populate('facilityId');
-    
-    res.json(populatedProduction);
+// 生産情報を削除
+export const deleteProduction = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const deletedProduction = await Production.findByIdAndDelete(req.params['id']);
+    if (!deletedProduction) {
+      res.status(404).json({ message: 'Production not found' });
+      return;
+    }
+    res.status(200).json({ message: 'Production deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting production', error });
+  }
+};
+
+// 生産ステータスを更新
+export const updateProductionStatus = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { status } = req.body;
+    const production = await Production.findByIdAndUpdate(
+      req.params['id'],
+      { $set: { status } },
+      { new: true, runValidators: true }
+    ).populate('facilityId');
+
+    if (!production) {
+      res.status(404).json({ message: 'Production not found' });
+      return;
+    }
+    res.status(200).json(production);
   } catch (error) {
     res.status(500).json({ message: 'Error updating production status', error });
   }

@@ -1,35 +1,28 @@
-import { Router } from 'express';
+import express from 'express';
 import {
   getAllFinancials,
   getFinancialById,
   createFinancial,
   updateFinancial,
-  deleteFinancial,
-  getFinancialsByDateRange,
-  getFinancialSummary
+  deleteFinancial
 } from '../controllers/financialController';
+import { validateFinancial } from '../../middleware/validator';
 
-const router = Router();
+const router = express.Router();
 
-// Get all financial plans
+// すべての財務情報を取得
 router.get('/', getAllFinancials);
 
-// Get financial summary
-router.get('/summary', getFinancialSummary);
-
-// Get financials by date range
-router.get('/date-range', getFinancialsByDateRange);
-
-// Get financial plan by ID
+// IDで財務情報を取得
 router.get('/:id', getFinancialById);
 
-// Create new financial plan
-router.post('/', createFinancial);
+// 新しい財務情報を作成
+router.post('/', validateFinancial, createFinancial);
 
-// Update financial plan
-router.put('/:id', updateFinancial);
+// 財務情報を更新
+router.put('/:id', validateFinancial, updateFinancial);
 
-// Delete financial plan
+// 財務情報を削除
 router.delete('/:id', deleteFinancial);
 
 export default router;

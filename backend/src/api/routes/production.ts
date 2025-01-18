@@ -1,35 +1,32 @@
-import { Router } from 'express';
+import express from 'express';
 import {
   getAllProductions,
   getProductionById,
   createProduction,
   updateProduction,
   deleteProduction,
-  getProductionsByFacility,
   updateProductionStatus
 } from '../controllers/productionController';
+import { validateProduction } from '../../middleware/validator';
 
-const router = Router();
+const router = express.Router();
 
-// Get all production plans
+// すべての生産情報を取得
 router.get('/', getAllProductions);
 
-// Get production plan by ID
+// IDで生産情報を取得
 router.get('/:id', getProductionById);
 
-// Get productions by facility
-router.get('/facility/:facilityId', getProductionsByFacility);
+// 新しい生産情報を作成
+router.post('/', validateProduction, createProduction);
 
-// Create new production plan
-router.post('/', createProduction);
+// 生産情報を更新
+router.put('/:id', validateProduction, updateProduction);
 
-// Update production plan
-router.put('/:id', updateProduction);
-
-// Update production status
-router.patch('/:id/status', updateProductionStatus);
-
-// Delete production plan
+// 生産情報を削除
 router.delete('/:id', deleteProduction);
+
+// 生産ステータスを更新
+router.patch('/:id/status', updateProductionStatus);
 
 export default router;

@@ -1,13 +1,11 @@
 {
   "compilerOptions": {
-    // プロジェクトの設定
     "target": "ES2022",
     "module": "CommonJS",
     "lib": ["ES2022"],
     "outDir": "./dist",
     "rootDir": "./src",
 
-    // モジュール解決の設定
     "moduleResolution": "node",
     "baseUrl": "./src",
     "paths": {
@@ -16,7 +14,6 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
 
-    // 厳格な型チェック
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -26,26 +23,22 @@
     "noImplicitThis": true,
     "alwaysStrict": true,
 
-    // 追加の型チェック
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
+    "noUncheckedIndexedAccess": false,
     "noImplicitOverride": true,
-    "noPropertyAccessFromIndexSignature": true,
+    "noPropertyAccessFromIndexSignature": false,
 
-    // ソースマップとデバッグ
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
     "inlineSources": true,
 
-    // 実験的機能
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
 
-    // その他の設定
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,

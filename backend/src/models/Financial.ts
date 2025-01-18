@@ -211,4 +211,4 @@ const FinancialSchema: Schema = new Schema({
   timestamps: true
 });
 
-export default mongoose.model<IFinancial>('Financial', FinancialSchema);
+export const Financial = mongoose.model<IFinancial>('Financial', FinancialSchema);

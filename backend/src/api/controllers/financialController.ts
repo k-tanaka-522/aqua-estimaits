@@ -1,120 +1,69 @@
 import { Request, Response } from 'express';
-import Financial, { IFinancial } from '../../models/Financial';
+import { Financial } from '../../models/Financial';
 
-// Get all financial plans
-export const getAllFinancials = async (req: Request, res: Response) => {
+// すべての財務情報を取得
+export const getAllFinancials = async (_req: Request, res: Response): Promise<void> => {
   try {
     const financials = await Financial.find();
-    res.json(financials);
+    res.status(200).json(financials);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching financial plans', error });
+    res.status(500).json({ message: 'Error fetching financials', error });
   }
 };
 
-// Get financial plan by ID
-export const getFinancialById = async (req: Request, res: Response) => {
+// IDで財務情報を取得
+export const getFinancialById = async (req: Request, res: Response): Promise<void> => {
   try {
     const financial = await Financial.findById(req.params.id);
     if (!financial) {
-      return res.status(404).json({ message: 'Financial plan not found' });
+      res.status(404).json({ message: 'Financial not found' });
+      return;
     }
-    res.json(financial);
+    res.status(200).json(financial);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching financial plan', error });
+    res.status(500).json({ message: 'Error fetching financial', error });
   }
 };
 
-// Create new financial plan
-export const createFinancial = async (req: Request, res: Response) => {
+// 新しい財務情報を作成
+export const createFinancial = async (req: Request, res: Response): Promise<void> => {
   try {
-    const financialData: IFinancial = req.body;
-    const financial = new Financial(financialData);
+    const financial = new Financial(req.body);
     const savedFinancial = await financial.save();
     res.status(201).json(savedFinancial);
   } catch (error) {
-    res.status(500).json({ message: 'Error creating financial plan', error });
+    res.status(500).json({ message: 'Error creating financial', error });
   }
 };
 
-// Update financial plan
-export const updateFinancial = async (req: Request, res: Response) => {
+// 財務情報を更新
+export const updateFinancial = async (req: Request, res: Response): Promise<void> => {
   try {
-    const updatedFinancial = await Financial.findByIdAndUpdate(
+    const financial = await Financial.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      { $set: req.body },
       { new: true, runValidators: true }
     );
-    
-    if (!updatedFinancial) {
-      return res.status(404).json({ message: 'Financial plan not found' });
+    if (!financial) {
+      res.status(404).json({ message: 'Financial not found' });
+      return;
     }
-    res.json(updatedFinancial);
+    res.status(200).json(financial);
   } catch (error) {
-    res.status(500).json({ message: 'Error updating financial plan', error });
+    res.status(500).json({ message: 'Error updating financial', error });
   }
 };
 
-// Delete financial plan
-export const deleteFinancial = async (req: Request, res: Response) => {
+// 財務情報を削除
+export const deleteFinancial = async (req: Request, res: Response): Promise<void> => {
   try {
     const deletedFinancial = await Financial.findByIdAndDelete(req.params.id);
     if (!deletedFinancial) {
-      return res.status(404).json({ message: 'Financial plan not found' });
+      res.status(404).json({ message: 'Financial not found' });
+      return;
     }
-    res.json({ message: 'Financial plan deleted successfully' });
+    res.status(200).json({ message: 'Financial deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting financial plan', error });
-  }
-};
-
-// Get financial plans by date range
-export const getFinancialsByDateRange = async (req: Request, res: Response) => {
-  try {
-    const { startDate, endDate } = req.query;
-    
-    const query: any = {};
-    if (startDate && endDate) {
-      query['period.startDate'] = { $gte: new Date(startDate as string) };
-      query['period.endDate'] = { $lte: new Date(endDate as string) };
-    }
-
-    const financials = await Financial.find(query);
-    res.json(financials);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching financial plans', error });
-  }
-};
-
-// Get financial summary
-export const getFinancialSummary = async (req: Request, res: Response) => {
-  try {
-    const { startDate, endDate } = req.query;
-    
-    const query: any = {};
-    if (startDate && endDate) {
-      query['period.startDate'] = { $gte: new Date(startDate as string) };
-      query['period.endDate'] = { $lte: new Date(endDate as string) };
-    }
-
-    const financials = await Financial.find(query);
-    
-    const summary = {
-      totalBudget: financials.reduce((sum: number, fin: IFinancial) => sum + fin.budget.total, 0),
-      totalExpenses: financials.reduce((sum: number, fin: IFinancial) => sum + fin.actualExpenses.total, 0),
-      totalRevenue: financials.reduce((sum: number, fin: IFinancial) => sum + fin.revenue.actual, 0),
-      averageGrossMargin: financials.length > 0
-        ? financials.reduce((sum: number, fin: IFinancial) => sum + fin.profitability.grossMargin, 0) / financials.length
-        : 0,
-      averageNetMargin: financials.length > 0
-        ? financials.reduce((sum: number, fin: IFinancial) => sum + fin.profitability.netMargin, 0) / financials.length
-        : 0,
-      averageROI: financials.length > 0
-        ? financials.reduce((sum: number, fin: IFinancial) => sum + fin.profitability.roi, 0) / financials.length
-        : 0
-    };
-
-    res.json(summary);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching financial summary', error });
+    res.status(500).json({ message: 'Error deleting financial', error });
   }
 };
