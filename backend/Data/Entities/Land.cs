@@ -42,7 +42,19 @@ public class Land
 
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+    // Foreign key
+    /// <summary>
+    /// この土地の所有者（ユーザーID）
+    /// </summary>
+    [Required]
+    public required string UserId { get; set; }
+
     // Navigation properties
+    /// <summary>
+    /// この土地の所有者
+    /// </summary>
+    public User? User { get; set; }
+
     public ICollection<Simulation> Simulations { get; set; } = new List<Simulation>();
 
     // Computed property

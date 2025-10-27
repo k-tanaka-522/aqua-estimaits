@@ -51,7 +51,19 @@ public class Simulation
 
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+    // Foreign key
+    /// <summary>
+    /// このシミュレーションを作成したユーザーID
+    /// </summary>
+    [Required]
+    public required string UserId { get; set; }
+
     // Navigation properties
+    /// <summary>
+    /// このシミュレーションを作成したユーザー
+    /// </summary>
+    public User? User { get; set; }
+
     [ForeignKey("LandId")]
     public Land? Land { get; set; }
 }

@@ -9,12 +9,37 @@ public class AquaGrowDbContext : Microsoft.EntityFrameworkCore.DbContext
     {
     }
 
+    public DbSet<User> Users { get; set; }
     public DbSet<Land> Lands { get; set; }
     public DbSet<Simulation> Simulations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // Configure User entity
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.PasswordHash).IsRequired();
+            entity.Property(e => e.Name).HasMaxLength(100);
+
+            // Email must be unique
+            entity.HasIndex(e => e.Email).IsUnique();
+            entity.HasIndex(e => e.CreatedAt);
+
+            // Configure relationships
+            entity.HasMany(e => e.Lands)
+                  .WithOne(e => e.User)
+                  .HasForeignKey(e => e.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(e => e.Simulations)
+                  .WithOne(e => e.User)
+                  .HasForeignKey(e => e.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
 
         // Configure Land entity
         modelBuilder.Entity<Land>(entity =>
@@ -25,6 +50,7 @@ public class AquaGrowDbContext : Microsoft.EntityFrameworkCore.DbContext
             entity.Property(e => e.Sunlight).HasMaxLength(50);
             entity.Property(e => e.Memo).HasMaxLength(1000);
 
+            entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.CreatedAt);
 
             // Configure relationship
@@ -42,6 +68,7 @@ public class AquaGrowDbContext : Microsoft.EntityFrameworkCore.DbContext
             entity.Property(e => e.FishType).IsRequired().HasMaxLength(100);
             entity.Property(e => e.VegetableTypes).IsRequired();
 
+            entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.LandId);
             entity.HasIndex(e => e.CreatedAt);
         });
@@ -52,6 +79,19 @@ public class AquaGrowDbContext : Microsoft.EntityFrameworkCore.DbContext
 
     private void SeedData(ModelBuilder modelBuilder)
     {
+        // Add a test user for development
+        var testUser = new User
+        {
+            Id = "user-001",
+            Email = "test@example.com",
+            PasswordHash = "$2a$11$ExampleHashForDevelopment", // BCrypt hash for "password123"
+            Name = "テストユーザー",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        modelBuilder.Entity<User>().HasData(testUser);
+
         // Add some initial lands for development
         var land1 = new Land
         {
@@ -65,6 +105,7 @@ public class AquaGrowDbContext : Microsoft.EntityFrameworkCore.DbContext
             WaterSource = true,
             PowerSource = true,
             Address = "新潟県新潟市",
+            UserId = "user-001",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -91,7 +132,15 @@ public class AquaGrowDbContext : Microsoft.EntityFrameworkCore.DbContext
 
         foreach (var entry in entries)
         {
-            if (entry.Entity is Land land)
+            if (entry.Entity is User user)
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    user.CreatedAt = DateTime.UtcNow;
+                }
+                user.UpdatedAt = DateTime.UtcNow;
+            }
+            else if (entry.Entity is Land land)
             {
                 if (entry.State == EntityState.Added)
                 {
