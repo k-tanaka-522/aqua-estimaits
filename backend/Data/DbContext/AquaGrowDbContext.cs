@@ -79,6 +79,9 @@ public class AquaGrowDbContext : Microsoft.EntityFrameworkCore.DbContext
 
     private void SeedData(ModelBuilder modelBuilder)
     {
+        // Static datetime for seed data (avoids EF Core warning about dynamic values)
+        var seedDateTime = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
         // Add a test user for development
         var testUser = new User
         {
@@ -86,8 +89,8 @@ public class AquaGrowDbContext : Microsoft.EntityFrameworkCore.DbContext
             Email = "test@example.com",
             PasswordHash = "$2a$11$ExampleHashForDevelopment", // BCrypt hash for "password123"
             Name = "テストユーザー",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = seedDateTime,
+            UpdatedAt = seedDateTime
         };
 
         modelBuilder.Entity<User>().HasData(testUser);
@@ -106,8 +109,8 @@ public class AquaGrowDbContext : Microsoft.EntityFrameworkCore.DbContext
             PowerSource = true,
             Address = "新潟県新潟市",
             UserId = "user-001",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = seedDateTime,
+            UpdatedAt = seedDateTime
         };
 
         modelBuilder.Entity<Land>().HasData(land1);
